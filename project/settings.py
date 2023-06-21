@@ -13,6 +13,11 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 from pathlib import Path
 from datetime import timedelta
 
+from django.core.management.utils import get_random_secret_key
+import os
+import dj_database_url
+import dotenv
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -20,14 +25,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
 
+dotenv.load_dotenv()
+
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-e91823y78dgasdas89cvyxz76the912j321321-cx9!!#1232111!!!"
+SECRET_KEY = os.getenv("SECRET_KEY", get_random_secret_key())
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = []
 
+RAILWAY_STATIC_URL = os.getenv("RAILWAY_STATIC_URL")
+
+if RAILWAY_STATIC_URL:
+    ALLOWED_HOSTS += [RAILWAY_STATIC_URL, "0.0.0.0"]
 
 # Application definition
 DJANGO_APPS = [
@@ -39,9 +51,7 @@ DJANGO_APPS = [
     "django.contrib.staticfiles",
 ]
 
-THIRD_PARTY_APPS = [
-    "rest_framework",
-]
+THIRD_PARTY_APPS = ["rest_framework", "drf_spectacular"]
 
 MY_APPS = [
     "users",
@@ -59,6 +69,8 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 ROOT_URLCONF = "bandkamp.urls"
@@ -92,6 +104,19 @@ DATABASES = {
     }
 }
 
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if DATABASE_URL:
+    db_from_env = dj_database_url.config(
+        default=DATABASE_URL, conn_max_age=500, ssl_require=True
+    )
+    DATABASES["default"].update(db_from_env)
+    DEBUG = False
+
+if not DEBUG:
+    STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
+    STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -119,6 +144,7 @@ SIMPLE_JWT = {
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 2,
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 # Internationalization
@@ -144,3 +170,10 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 AUTH_USER_MODEL = "users.User"
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "BandKamp",
+    "DESCRIPTION": " Refatoração, aplicando os conceitos de Generic View, Model Serializer e alterando o BD para o PostgreSQL.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
+}
