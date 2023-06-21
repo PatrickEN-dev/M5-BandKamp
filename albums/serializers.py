@@ -1,6 +1,7 @@
 from rest_framework import serializers
-from .models import Album
+
 from users.serializers import UserSerializer
+from .models import Album
 
 
 class AlbumSerializer(serializers.ModelSerializer):
@@ -11,4 +12,5 @@ class AlbumSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def create(self, validated_data: dict) -> Album:
+        print("VALIDATE DATA AQUI", validated_data)
         return Album.objects.create(**validated_data)
