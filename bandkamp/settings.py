@@ -94,13 +94,14 @@ TEMPLATES = [
 WSGI_APPLICATION = "bandkamp.wsgi.application"
 
 
-# Database
-# https://docs.djangoproject.com/en/4.0/ref/settings/#databases
-
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "USERNAME": os.getenv("USERNAME"),
+        "PASSWORD": os.getenv("PASSWORD"),
+        "NAME": os.getenv("DB_NAME"),
+        "HOST": os.getenv("DB_HOST"),
+        "PORT": os.getenv("DB_PORT"),
     }
 }
 
